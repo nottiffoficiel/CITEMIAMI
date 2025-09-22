@@ -1,86 +1,431 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>CITE MIAMI - Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cité Miami – App (Tuiles + Lecteur)</title>
+
+  <!--
+    💡 Polices web (facultatif si tu es en offline strict) :
+    Décommente ces 2 lignes quand tu seras en ligne pour un rendu plus “mag”.
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  -->
+
   <style>
-    body {
-      background-color: #000000; /* Black */
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 10px;
-      color: #FFD700; /* Gold */
+    /* ============================================================
+       🎨 THEME GLOBAL — sombre + accents dorés
+       ============================================================ */
+    :root{
+      --bg:#0d0d0d;
+      --panel:#141414;
+      --panel-2:#1b1b1b;
+      --line:#2a2a2a;
+      --text:#f5f5f5;
+      --muted:#9a9a9a;
+      --gold:gold;
+      --accent1:gold;
+      --accent2:orange;
+
+      /* Polices : display pour titres, sans pour textes */
+      --font-display: "Oswald", "Impact", "Segoe UI", system-ui, sans-serif;
+      --font-sans: "Poppins", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
     }
 
-    h1 {
-      text-align: center;
-      color: #FFD700;
-      margin-bottom: 20px;
+    html,body{
+      margin:0; padding:0; background:var(--bg); color:var(--text);
+      font-family: var(--font-sans);
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
-      gap: 15px;
+    /* ============================================================
+       🏷️ HEADER — branding sticky
+       ============================================================ */
+    header{
+      background:#121212;
+      padding:16px 12px;
+      text-align:center;
+      color:var(--gold);
+      font: 700 26px/1 var(--font-display);
+      letter-spacing:.5px;
+      text-transform:uppercase;
+      text-shadow:0 0 8px var(--gold);
+      position:sticky; top:0; z-index:60;
+      border-bottom:1px solid var(--gold);
     }
 
-    .tile {
-      background: linear-gradient(145deg, #660000, #990000); /* Ruby red tile */
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.6);
-      color: white;
-      padding: 10px;
-      text-align: center;
-      transition: transform 0.2s;
+    /* ============================================================
+       📂 NAV — sticky + active
+       ============================================================ */
+    nav{
+      display:flex; gap:10px; justify-content:space-around; align-items:center;
+      background:#0f0f0f; border-bottom:1px solid var(--gold); padding:10px;
+      position:sticky; top:58px; z-index:50;
     }
+    nav a{
+      color:#fff; text-decoration:none; font-weight:700; font-size:14px;
+      padding:8px 12px; border-radius:999px; border:1px solid #222; transition:.18s;
+      font-family: var(--font-display);
+      letter-spacing:.3px;
+    }
+    nav a.active, nav a:hover{ color:var(--gold); border-color:var(--gold); }
 
-    .tile:hover {
-      transform: scale(1.05);
+    /* ============================================================
+       📦 SECTIONS — une visible à la fois
+       ============================================================ */
+    .section{
+      display:none; padding:18px 14px 124px; /* bas large: mini-player collé */
+      max-width:1040px; margin:0 auto; animation:fadeIn .28s ease;
     }
+    .section.active{ display:block; }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
-    .tile img {
-      width: 100%;
-      border-radius: 8px;
+    /* ============================================================
+       🧱 CARDS (Accueil/Artistes/A propos)
+       ============================================================ */
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin:0 0 16px;
+      box-shadow:0 0 14px rgba(255,215,0,.14);
+      transition:transform .18s ease;
     }
+    .card:hover{ transform:translateY(-2px); }
+    .card img{ width:100%; border-radius:10px; display:block; margin:0 0 10px; }
 
-    .tile h3 {
-      margin: 10px 0 5px;
-      font-size: 18px;
-      color: #FFD700;
+    .title-grad{
+      font: 800 22px/1.2 var(--font-display);
+      letter-spacing:.4px;
+      background:linear-gradient(90deg, var(--accent1), var(--accent2));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-transform:uppercase;
     }
+    .muted{ color:var(--muted); font-size:14px; }
 
-    .tile p {
-      margin: 0;
-      font-size: 14px;
-      color: #eee;
+    .socials{ display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;}
+    .socials a{ color:#ccc; text-decoration:none; font-size:14px; }
+    .socials a:hover{ color:var(--gold); }
+
+    /* ============================================================
+       🔎 RECHERCHE — barre + chips (section Chansons)
+       ============================================================ */
+    .search-bar{
+      display:flex; gap:8px; align-items:center; background:#131313;
+      border:1px solid var(--line); border-radius:12px; padding:8px 12px; margin:4px 0 12px;
     }
+    .search-bar input{
+      flex:1; background:transparent; border:none; color:#fff; outline:none; font-size:14px;
+    }
+    .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px; }
+    .chip{
+      padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-size:12px; cursor:pointer; user-select:none;
+    }
+    .chip.active{ border-color:var(--gold); color:var(--gold); }
+
+    /* ============================================================
+       🧊 TUILES RECTANGULAIRES FINES — section Chansons
+       ============================================================ */
+    .tile-grid{
+      display:grid;
+      /* tuiles fines, rectangulaires */
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .tile{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      display:grid;
+      grid-template-columns: 64px 1fr auto; /* cover | meta | bouton */
+      align-items:center;
+      gap:10px;
+      min-height:72px; /* fine et rectangulaire */
+      transition:transform .16s ease, background .16s ease, border-color .16s ease;
+      cursor:pointer;
+    }
+    .tile:hover{ transform:translateY(-2px); border-color:var(--gold); background:#191919; }
+    .tile-cover{
+      width:64px; height:64px; border-radius:8px; object-fit:cover;
+      display:block;
+    }
+    .tile-meta{ min-width:0; }
+    .tile-title{
+      font: 700 15px/1.25 var(--font-display);
+      letter-spacing:.3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .tile-artist{
+      color:#a8a8a8; font: 500 12px/1.2 var(--font-sans);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      margin-top:2px;
+    }
+    .tile .icon-btn{ width:34px; height:34px; }
+
+    /* ============================================================
+       ▶️ MINI-PLAYER COLLÉ (global)
+       ============================================================ */
+    .mini-player{
+      position:fixed; left:10px; right:10px; bottom:10px;
+      background:#151515; border:1px solid var(--line); border-radius:16px; padding:8px 10px;
+      display:flex; gap:10px; align-items:center;
+      box-shadow:0 10px 24px rgba(0,0,0,.45), 0 0 12px rgba(255,215,0,.15);
+      z-index:70;
+    }
+    .mini-cover{ width:48px; height:48px; border-radius:8px; object-fit:cover; }
+    .mini-meta{ flex:1; min-width:0; }
+    .mini-title{
+      font: 800 14px/1.2 var(--font-display);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .mini-artist{ color:#aaa; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mini-actions{ display:flex; gap:6px; align-items:center; }
+    .icon-btn{
+      background:#1c1c1c; border:1px solid var(--line);
+      width:36px; height:36px; border-radius:999px;
+      display:grid; place-items:center; color:#fff; cursor:pointer;
+      transition: border-color .15s ease, color .15s ease;
+    }
+    .icon-btn:hover{ border-color:var(--gold); color:var(--gold); }
+
+    /* ============================================================
+       ⬆️ MODAL — lecteur plein écran
+       ============================================================ */
+    .modal{ position:fixed; inset:0; display:none; place-items:center; z-index:80; background:rgba(0,0,0,.6); }
+    .modal.open{ display:grid; }
+    .sheet{
+      width:min(1040px, 94vw);
+      background:#121212; border:1px solid var(--line); border-radius:18px; box-shadow:0 24px 80px rgba(0,0,0,.65);
+      padding:18px; max-height:92vh; overflow:auto;
+    }
+    .sheet h3{ font-family:var(--font-display); }
+    .cover-lg{ width:260px; height:260px; border-radius:18px; object-fit:cover; display:block; margin:0 auto 14px; }
+    .progress{
+      width:100%; appearance:none; height:6px; border-radius:999px; background:#2a2a2a; outline:none; cursor:pointer;
+    }
+    .progress::-webkit-slider-thumb{
+      -webkit-appearance:none; appearance:none;
+      width:14px; height:14px; border-radius:50%; background:var(--gold); border:2px solid #000; margin-top:-4px;
+    }
+    .time-row{ display:flex; justify-content:space-between; color:#aaa; font-size:12px; }
+
+    /* ============================================================
+       🧾 FOOTER
+       ============================================================ */
+    footer{ text-align:center; padding:18px 10px; color:#777; font-size:12px; border-top:1px solid #1e1e1e; margin-top:24px; }
+
+    /* Responsive nav spacing */
+    @media (min-width:900px){ nav{ justify-content:center; gap:16px; } }
   </style>
 </head>
 <body>
-  <h1>CITE MIAMI</h1>
-  <div class="grid">
-    <!-- 🔹 Example Tile 1 -->
-    <div class="tile">
-      <img src="https://picsum.photos/300/200?random=1" alt="Music cover">
-      <h3>Trending Song</h3>
-      <p>🔥 Now on Drive</p>
+
+  <!-- ============================================================
+       🏷️ EN-TÊTE
+       ============================================================ -->
+  <header>CITÉ MIAMI</header>
+
+  <!-- ============================================================
+       📂 NAVIGATION — (JS active la section)
+       ============================================================ -->
+  <nav>
+    <a href="#accueil"  data-target="accueil"  class="active">Accueil</a>
+    <a href="#chansons" data-target="chansons">Chansons</a>
+    <a href="#artistes" data-target="artistes">Artistes</a>
+    <a href="#apropos"  data-target="apropos">À propos</a>
+  </nav>
+
+  <!-- ============================================================
+       🏠 ACCUEIL — hero + play direct
+       ============================================================ -->
+  <section id="accueil" class="section active">
+    <article class="card">
+      <!-- 📸 Garde EXACT le nom d'image -->
+      <img src="czone.jpeg" alt="CZ One - Cité Miami" />
+      <h2 class="title-grad">Bienvenue sur Cité Miami</h2>
+      <p class="muted">
+        Explorez les artistes et leurs œuvres. Le label Cité Miami vous présente un projet de groupe
+        mettant en avant CZ One, Dezball et Nottiff.
+      </p>
+
+      <!-- ▶️ Play direct 1ère piste -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+        <button class="icon-btn" id="btnPlayAccueil" title="Écouter la première piste">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <span class="muted">Lecture rapide d’un aperçu</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============================================================
+       🎵 CHANSONS — recherche + TUILES fines (cliquables)
+       ============================================================ -->
+  <section id="chansons" class="section">
+    <!-- 🔎 Barre de recherche -->
+    <div class="search-bar">
+      <!-- loupe -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#bbb" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM5 9.5C5 7.01 7.01 5 9.5 5S14 7.01 14 9.5 11.99 14 9.5 14 5 11.99 5 9.5z"/></svg>
+      <input id="searchInput" type="search" placeholder="Rechercher une chanson ou un artiste…" aria-label="Rechercher" />
+      <!-- micro (placeholder UI) -->
+      <button class="icon-btn" title="Recherche vocale (placeholder)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zM11 19.93V22h2v-2.07A8.001 8.001 0 0 0 20 13h-2a6 6 0 0 1-12 0H4a8.001 8.001 0 0 0 7 6.93z"/></svg>
+      </button>
     </div>
 
-    <!-- 🔹 Example Tile 2 -->
-    <div class="tile">
-      <img src="https://picsum.photos/300/200?random=2" alt="Product">
-      <h3>Cool Product</h3>
-      <p>Only $20</p>
+    <!-- Chips catégories (visuel) -->
+    <div class="chip-row" id="chipRow">
+      <span class="chip active" data-filter="all">Tout</span>
+      <span class="chip" data-filter="song">Chansons</span>
+      <span class="chip" data-filter="artist">Artistes</span>
+      <span class="chip" data-filter="album">Albums</span>
+      <span class="chip" data-filter="playlist">Playlists</span>
     </div>
 
-    <!-- 🔹 Example Tile 3 -->
-    <div class="tile">
-      <img src="https://picsum.photos/300/200?random=3" alt="Video">
-      <h3>Hot Video</h3>
-      <p>Watch on YouTube</p>
+    <!-- 🧊 Grille de tuiles — générée depuis PLAYLIST -->
+    <div class="tile-grid" id="songsTiles"></div>
+  </section>
+
+  <!-- ============================================================
+       👤 ARTISTES — cartes + play direct
+       ============================================================ -->
+  <section id="artistes" class="section">
+    <!-- Nottiff -->
+    <article class="card">
+      <img src="czone2.jpeg" alt="Nottiff" />
+      <h3 class="title-grad">Nottiff</h3>
+      <p class="muted">Rnb / Trap</p>
+      <p>Projet : <em>REALITIES</em> • Single : <strong>Fashi Ya Beyi</strong></p>
+      <div class="socials"><a href="#">TikTok</a><a href="#">Instagram</a><a href="#">YouTube</a></div>
+      <button class="icon-btn play-artist" data-index="0" title="Écouter Fashi Ya Beyi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </article>
+
+    <!-- CZ One -->
+    <article class="card">
+      <img src="cz.jpeg" alt="CZ One" />
+      <h3 class="title-grad">CZ One</h3>
+      <p class="muted">Rap Swahili / Trap Swahili</p>
+      <p>Le Roi de la Cité • Groupe : Cité Miami</p>
+      <div class="socials"><a href="#">TikTok</a><a href="#">Instagram</a><a href="#">YouTube</a></div>
+      <button class="icon-btn play-artist" data-index="1" title="Écouter Winners">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </article>
+
+    <!-- Dezball -->
+    <article class="card">
+      <img src="dz.jpeg" alt="Dezball" />
+      <h3 class="title-grad">Dezball</h3>
+      <p class="muted">Afro-urban / Trap</p>
+      <p>Mutoka Mbari • Groupe : Cité Miami</p>
+      <div class="socials"><a href="#">TikTok</a><a href="#">Instagram</a><a href="#">YouTube</a></div>
+      <button class="icon-btn play-artist" data-index="2" title="Écouter Volonté">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </article>
+
+    <!-- Duplication exemple -->
+    <article class="card">
+      <img src="dz.jpeg" alt="Dezball 4" />
+      <h3 class="title-grad">Dezball 4</h3>
+      <p class="muted">Afro-urban / Trap</p>
+      <p>Solo : “Titre 7”, “Titre 8” • Groupe : “Collectif XYZ”</p>
+      <div class="socials"><a href="#">TikTok</a><a href="#">Instagram</a><a href="#">YouTube</a></div>
+      <button class="icon-btn play-artist" data-index="2" title="Écouter Volonté">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </article>
+  </section>
+
+  <!-- ============================================================
+       ℹ️ À PROPOS
+       ============================================================ -->
+  <section id="apropos" class="section">
+    <article class="card">
+      <h3 class="title-grad">À propos</h3>
+      <p class="muted">
+        Cité Miami est un label artistique et musical fondé pour valoriser les talents afro-urbains.
+        Berceau de plusieurs talents, la Cité Miami s’impose comme un point de gravité dans le game de Likasi.
+      </p>
+      <p>
+        Managers : John Lasha, Dezball (aussi artiste du label).  
+        CZ One et Nottiff sont producteurs et managers des artistes de la Cité Miami.
+      </p>
+      <p class="muted">App conçue par AmaliCorp – Design, branding et tech offline.</p>
+    </article>
+  </section>
+
+  <!-- ============================================================
+       🎚️ MINI‑PLAYER (collé bas) — visible dès le départ (pause)
+       ============================================================ -->
+  <div class="mini-player" id="miniPlayer" style="display:none;">
+    <!-- Cover courante -->
+    <img id="miniCover" class="mini-cover" src="czone2.jpeg" alt="Cover" />
+    <!-- Meta -->
+    <div class="mini-meta">
+      <div class="mini-title" id="miniTitle">—</div>
+      <div class="mini-artist" id="miniArtist">—</div>
+    </div>
+    <!-- Contrôles -->
+    <div class="mini-actions">
+      <button class="icon-btn" id="btnPrev" title="Précédent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnPlayPause" title="Lecture/Pause">
+        <svg id="iconPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnNext" title="Suivant">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6v12l8.5-6z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnExpand" title="Ouvrir le lecteur">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14h10v2H7zm0-6h10v2H7z"/></svg>
+      </button>
     </div>
   </div>
-</body>
-</html>
+
+  <!-- ============================================================
+       ⬆️ MODAL — lecteur plein écran
+       ============================================================ -->
+  <div class="modal" id="playerModal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-label="Lecteur">
+      <!-- Barre de fermeture -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-family:var(--font-display); letter-spacing:.3px;">Lecteur</strong>
+        <button class="icon-btn" id="btnCloseModal" title="Fermer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71 12 12.01l-6.29-6.3-1.42 1.42 6.3 6.29-6.3 6.29 1.42 1.42 6.29-6.3 6.29 6.3 1.42-1.42-6.3-6.29 6.3-6.29z"/></svg>
+        </button>
+      </div>
+
+      <!-- Pochette + titres -->
+      <img id="fullCover" class="cover-lg" src="czone2.jpeg" alt="Cover large" />
+      <h3 id="fullTitle" style="text-align:center; margin:6px 0 2px;">—</h3>
+      <div id="fullArtist" class="muted" style="text-align:center;">—</div>
+
+      <!-- Progression -->
+      <div style="margin:14px 0 6px;">
+        <input id="rangeProgress" class="progress" type="range" min="0" max="100" value="0" />
+        <div class="time-row">
+          <span id="timeCurrent">0:00</span>
+          <span id="timeTotal">0:00</span>
+        </div>
+      </div>
+
+      <!-- Boutons transport -->
+      <div style="display:flex; justify-content:center; gap:12px; margin:10px 0 4px;">
+        <button class="icon-btn" id="btnRepeat" title="Répéter">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h11v3l4-4-4-4v3H6a5 5 0 0 0-5 5v3h2V10a3 3 0 0 1 3-3zm10 10H6v-3l-4 4 4 4v-3h12a5 5 0 0 0 5-5v-3h-2v3a3 3 0 0 1-3 3z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnModalPrev" title="Précédent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnModalPlayPause" title="Lecture/Pause">
+          <svg id="iconPlayModal" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnModalNext" title="Suivant">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6v12l8.5-6z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnShuffle" title="Aléatoire">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.83 13.41 12 10.59 6.41 16H4v2h3.59l5.24-5.24zm5.17 2.59h-2.59
