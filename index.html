@@ -250,7 +250,7 @@
       artist: 'Cité MIAMI',
       artistId: 'czone',
       cover: 'czone3.jpeg',
-      src: 'https://drive.google.com/uc?export=download&id=ID_GOOGLE_DRIVE_2'
+      src: 'https://github.com/nottiffoficiel/CITEMIAMI/raw/refs/heads/main/FASHI%20Ya%20BEYI.mp3'
     },
     {
       id: 'track-3',
@@ -438,4 +438,151 @@
     });
 
     // show artist page
-    $$('.page').forEach(p=>p.style.display='none'); $('#artistProfile').style.display='block'; $('#artistProfile').setAttribute('aria-
+    $$('.page').forEach(p=>p.style.display='none'); $('#artistProfile').style.display='block'; $('#artistProfile').setAttribute('aria-hidden','false');
+  }
+
+  // ---------------------------
+  // PLAYER ENGINE: load, play, prev/next, progress, tracking
+  // ---------------------------
+  let currentTrackIndex = 0;
+  function findIndexById(id){ return PLAYLIST.findIndex(t => t.id === id); }
+  function loadByIndex(i, autoPlay = true){
+    if(i < 0 || i >= PLAYLIST.length) return;
+    currentTrackIndex = i;
+    const t = PLAYLIST[i];
+    audio.src = t.src;
+    $('#miniCover').src = t.cover;
+    $('#miniTitle').textContent = t.title;
+    $('#miniArtist').textContent = t.artist;
+    $('#miniPlayer').style.display = 'flex';
+    updatePlayButton(false);
+    if(autoPlay){ audio.play().catch(e => console.warn('Autoplay blocked', e)); }
+  }
+  function loadAndPlayById(id){ const i = findIndexById(id); if(i>=0) loadByIndex(i,true); }
+
+  // prev/next
+  function prevTrack(){ const i = (currentTrackIndex - 1 + PLAYLIST.length) % PLAYLIST.length; loadByIndex(i,true); }
+  function nextTrack(){ const i = (currentTrackIndex + 1) % PLAYLIST.length; loadByIndex(i,true); }
+
+  // play/pause UI toggle
+  function updatePlayButton(isPlaying){
+    const btn = $('#btnPlay');
+    if(isPlaying){
+      btn.classList.add('playing');
+      btn.textContent = '⏸';
+    } else {
+      btn.classList.remove('playing');
+      btn.textContent = '▶';
+    }
+  }
+
+  // progress/time update
+  audio.addEventListener('timeupdate', () => {
+    if(isNaN(audio.duration)) return;
+    const cur = Math.floor(audio.currentTime);
+    const total = Math.floor(audio.duration);
+    $('#miniProgress').max = total;
+    $('#miniProgress').value = cur;
+    $('#timeCurr').textContent = formatTime(cur);
+    $('#timeTotal').textContent = formatTime(total);
+  });
+
+  // ended: increment play count and go next (so user can navigate)
+  audio.addEventListener('ended', () => {
+    incrementPlayCount(PLAYLIST[currentTrackIndex].id);
+    // auto-next
+    nextTrack();
+  });
+
+  // progress drag
+  $('#miniProgress').addEventListener('input', (e) => { audio.currentTime = Number(e.target.value || 0); });
+
+  // volume
+  $('#miniVol').addEventListener('input', (e) => { audio.volume = Number(e.target.value); });
+
+  // transport buttons
+  $('#btnPrev').addEventListener('click', prevTrack);
+  $('#btnNext').addEventListener('click', nextTrack);
+  $('#btnPlay').addEventListener('click', ()=>{
+    if(audio.paused){ audio.play(); updatePlayButton(true); } else { audio.pause(); updatePlayButton(false); }
+  });
+
+  // update play button on play/pause events
+  audio.addEventListener('play', ()=> updatePlayButton(true));
+  audio.addEventListener('pause', ()=> updatePlayButton(false));
+
+  // helper: format mm:ss
+  function formatTime(s){ if(!s || isNaN(s)) return '0:00'; const m = Math.floor(s/60); const sec = String(Math.floor(s%60)).padStart(2,'0'); return `${m}:${sec}`; }
+
+  // increment play counts in localStorage (you can replace with API call)
+  function incrementPlayCount(trackId){
+    const counts = getPlayCounts();
+    counts[trackId] = (counts[trackId] || 0) + 1;
+    setPlayCounts(counts);
+    // refresh some UI counts
+    renderSongs($('#search').value || '');
+    renderFeed();
+  }
+
+  // ---------------------------
+  // Delegated click events (play buttons, profile opens)
+  // ---------------------------
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-play]');
+    if(b){ const id = b.dataset.play; loadAndPlayById(id); return; }
+    const p = e.target.closest('[data-profile]');
+    if(p){ const id = p.dataset.profile; openArtistProfile(id); return; }
+    const pa = e.target.closest('[data-open]');
+    if(pa){ openArtistProfile(pa.dataset.open); return; }
+    const pArtistPlay = e.target.closest('[data-playartist]');
+    if(pArtistPlay){ // play first song of artist
+      const aid = pArtistPlay.dataset.playartist;
+      const t = PLAYLIST.find(x => x.artistId === aid);
+      if(t) loadAndPlayById(t.id);
+    }
+  });
+
+  // back button on artist profile
+  $('#backToArtists').addEventListener('click', () => {
+    $('#artistProfile').style.display = 'none'; $('#artistProfile').setAttribute('aria-hidden','true');
+    showSection('artistes');
+  });
+
+  // search
+  $('#search').addEventListener('input', (e) => renderSongs(e.target.value));
+
+  // reset
+  $('#btn-reset').addEventListener('click', ()=> { $('#search').value=''; renderSongs(); });
+
+  // ---------------------------
+  // INIT: render everything
+  // ---------------------------
+  function init(){
+    renderFeed();
+    renderSongs();
+    renderArtists();
+
+    // hook nav initial state from URL hash (optional)
+    const hash = (location.hash || '').replace('#','');
+    if(hash && ['home','chansons','artistes','apropos'].includes(hash)){ showSection(hash); }
+    else showSection('home');
+
+    // preload first cover
+    if(PLAYLIST[0]) {
+      $('#miniCover').src = PLAYLIST[0].cover;
+      $('#miniTitle').textContent = PLAYLIST[0].title;
+      $('#miniArtist').textContent = PLAYLIST[0].artist;
+      // show mini player even without playing so user sees controls (optional)
+      $('#miniPlayer').style.display = 'flex';
+    }
+  }
+
+  // load on DOM ready
+  document.addEventListener('DOMContentLoaded', init);
+
+  // expose some helper on window for debugging in WebViewer console if needed
+  window.CM = { ARTISTS, PLAYLIST, loadAndPlayById, openArtistProfile, getPlayCounts };
+
+  </script>
+</body>
+</html>
