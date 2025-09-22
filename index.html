@@ -3,88 +3,97 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cité Miami — App</title>
+  <title>Cité Miami — Firebase + GSAP</title>
 
-  <!-- ========================
-       STYLES (tout en un)
-       Remplace les couleurs/polices si tu veux, mais évite les imports externes pour WebViewer
-       ========================= -->
+  <!-- ===========================
+       STYLES (toutes modifs ici)
+       - Images du feed respectent ratio 2:1 via aspect-ratio
+       - Mini-player est le DERNIER conteneur avant le footer (partie du flux)
+       ============================ -->
   <style>
     :root{
       --bg:#0b0b0b;
       --panel:#121212;
-      --panel-2:#161616;
       --muted:#9a9a9a;
       --gold:#d4af37;
       --accent:#ff8a00;
-      --glass: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
       --radius:14px;
       --maxw:1040px;
+      --gap:14px;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:linear-gradient(180deg,#070707,#0d0d0d);color:#eee;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
     a{color:inherit}
-    header{position:sticky;top:0;z-index:80;background:linear-gradient(90deg,#0f0f0f, #121212);border-bottom:1px solid rgba(255,215,0,.06);padding:14px 12px;display:flex;align-items:center;gap:12px}
-    .logo{font-weight:800;color:var(--gold);letter-spacing:.6px;font-size:18px}
+    header{position:sticky;top:0;z-index:90;background:#111;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.04)}
+    .logo{font-weight:900;color:var(--gold);letter-spacing:.6px;font-size:18px}
     .nav{margin-left:auto;display:flex;gap:8px}
-    .nav button{background:transparent;border:1px solid rgba(255,255,255,.04);padding:8px 10px;border-radius:999px;color:#ddd;cursor:pointer;font-weight:700}
-    .nav button.active{border-color:var(--gold);color:var(--gold);box-shadow:0 6px 22px rgba(212,175,55,.06)}
-    main{max-width:var(--maxw);margin:18px auto;padding:0 14px 90px}
-    /* ---------- FEED (Accueil) ---------- */
-    .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-    .tile{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .14s, box-shadow .14s}
-    .tile:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,.6)}
-    .tile .thumb{width:100%;height:140px;border-radius:10px;object-fit:cover;background:#222;display:block}
+    .nav button{background:transparent;border:1px solid rgba(255,255,255,.03);padding:8px 10px;border-radius:999px;color:#ddd;cursor:pointer;font-weight:700;transition:all .28s cubic-bezier(.2,.9,.2,1)}
+    .nav button.active{border-color:var(--gold);color:var(--gold);box-shadow:0 8px 28px rgba(212,175,55,.08);transform:translateY(-2px)}
+    main{max-width:var(--maxw);margin:18px auto;padding:0 16px 0}
+    h2{margin:8px 0 12px}
+
+    /* ====== FEED: tiles 2:1 ====== */
+    .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--gap);align-items:start}
+    .tile{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,.03);display:flex;flex-direction:column;gap:8px;cursor:pointer;overflow:hidden}
+    .thumb{width:100%;aspect-ratio:2/1;border-radius:10px;object-fit:cover;display:block;transform-origin:center center}
     .tile h4{margin:0;font-size:16px;color:var(--gold);letter-spacing:.3px}
     .tile p{margin:0;color:var(--muted);font-size:13px}
     .tile .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
     .pill{background:var(--glass);padding:6px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(255,255,255,.03)}
-    /* ---------- SONG LIST / TUILES FINES ---------- */
-    .search-row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-    .search-row input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:transparent;color:#fff}
-    .songs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-    .song-tile{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.03);background:linear-gradient(180deg,#0f0f0f,#131313)}
-    .song-cover{width:64px;height:64px;border-radius:8px;object-fit:cover}
-    .song-meta{min-width:0;overflow:hidden}
+    /* tile hover effects handled by GSAP (scale/shadow) */
+
+    /* ====== SONGS GRID ====== */
+    .search-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+    .search-row input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.04);background:transparent;color:#fff;outline:none}
+    .btn-small{background:transparent;border:1px solid rgba(255,255,255,.04);padding:8px 10px;border-radius:10px;color:#ddd;cursor:pointer}
+    .btn-small:hover{border-color:var(--gold);color:var(--gold)}
+    .songs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .song-tile{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.03);background:linear-gradient(180deg,#0f0f0f,#131313);transition:transform .15s}
+    .song-tile:hover{transform:translateY(-4px)}
+    .song-cover{width:76px;height:76px;border-radius:8px;object-fit:cover;flex-shrink:0}
+    .song-meta{min-width:0}
     .song-title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .song-artist{color:var(--muted);font-size:13px;margin-top:3px}
-    .btn-small{background:transparent;border:1px solid rgba(255,255,255,.04);padding:8px;border-radius:8px;cursor:pointer}
-    /* ---------- ARTIST PROFILE ---------- */
-    .artist-page{display:none}
-    .artist-hero{display:flex;gap:16px;align-items:center;background:linear-gradient(180deg, rgba(212,175,55,.03), transparent);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.03)}
-    .artist-avatar{width:160px;height:160px;border-radius:14px;object-fit:cover;flex-shrink:0}
+    .song-artist{color:var(--muted);font-size:13px;margin-top:4px}
+
+    /* ====== ARTIST PROFILE ====== */
+    .artist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+    .artist-hero{display:flex;gap:16px;align-items:center;background:linear-gradient(180deg, rgba(212,175,55,.03), transparent);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.03);margin-bottom:12px}
+    .artist-avatar{width:160px;height:160px;border-radius:12px;object-fit:cover}
     .artist-bio{flex:1}
     .socials{display:flex;gap:8px;margin-top:8px}
-    .socials a{padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.03);background:transparent;text-decoration:none;color:#ddd;font-weight:700}
-    /* ---------- MINI PLAYER (plus beau) ---------- */
-    .mini-player{position:fixed;left:12px;right:12px;bottom:12px;z-index:120;background:linear-gradient(90deg,#0f0f0f,#151515);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.04);box-shadow:0 10px 40px rgba(0,0,0,.6)}
-    .mini-left{display:flex;gap:10px;align-items:center;min-width:0}
-    .mini-cover{width:64px;height:64px;border-radius:10px;object-fit:cover}
-    .mini-info{min-width:0}
-    .mini-title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mini-sub{color:var(--muted);font-size:13px;margin-top:4px}
-    .mini-controls{display:flex;align-items:center;gap:8px;margin-left:auto}
-    .round{width:44px;height:44px;border-radius:999px;display:grid;place-items:center;cursor:pointer;border:1px solid rgba(255,255,255,.03)}
-    .round.playing{box-shadow:0 8px 30px rgba(212,175,55,.08);border-color:var(--gold);color:var(--gold)}
-    .progress-wrap{width:240px;display:flex;flex-direction:column;gap:6px;margin-left:12px}
-    input[type="range"]{width:100%}
+    .socials a{padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.03);background:transparent;text-decoration:none;color:#ddd;font-weight:700}
+
+    /* ====== MINI-PLAYER (DERNIER CONTENEUR, intégré au flux) ====== */
+    .mini-player{background:linear-gradient(90deg,#0f0f0f,#151515);border-top:1px solid rgba(255,255,255,.04);padding:12px;border-radius:12px;margin-top:20px;display:flex;gap:12px;align-items:center}
+    .mini-cover{width:84px;height:84px;border-radius:10px;object-fit:cover;flex-shrink:0}
+    .mini-info{min-width:0;flex:1;display:flex;flex-direction:column}
+    .mini-title{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mini-sub{color:var(--muted);font-size:13px;margin-top:6px}
+    .mini-controls{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .round{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;cursor:pointer;border:1px solid rgba(255,255,255,.06);background:transparent}
+    .round.playing{border-color:var(--gold);color:var(--gold);box-shadow:0 12px 32px rgba(212,175,55,.08)}
+    .progress-wrap{display:flex;flex-direction:column;gap:8px;margin-top:8px}
     .time-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+    footer{text-align:center;padding:16px;color:#777;font-size:12px;background:#0f0f0f;margin-top:18px;border-top:1px solid rgba(255,255,255,.02)}
+
     /* responsive */
     @media (max-width:720px){
       .artist-hero{flex-direction:column;align-items:flex-start}
-      .mini-player{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}
-      .progress-wrap{width:100%}
+      .mini-player{flex-direction:column;align-items:flex-start}
+      .mini-controls{margin-left:0}
+      .thumb{aspect-ratio:2/1}
     }
   </style>
 </head>
 <body>
 
   <!-- =========================
-       HEADER / NAV
+       HEADER + NAV
        ========================= -->
   <header>
     <div class="logo">CITÉ MIAMI</div>
-    <nav class="nav" role="navigation" aria-label="Sections">
+    <nav class="nav" aria-label="Navigation">
       <button class="active" data-target="home">Accueil</button>
       <button data-target="chansons">Chansons</button>
       <button data-target="artistes">Artistes</button>
@@ -92,353 +101,324 @@
     </nav>
   </header>
 
-  <main>
-    <!-- =========================
-         ACCUEIL — FEED (Tiles géométriques alignées)
-         ========================= -->
-    <section id="home" class="page active">
-      <h2 style="margin:6px 0 14px;color:var(--gold)">Feed — Cité Miami</h2>
-      <div id="feed" class="feed">
-        <!-- Tiles générées dynamiquement -->
-      </div>
+  <!-- =========================
+       MAIN CONTENT
+       ========================= -->
+  <main id="appMain">
+    <!-- HOME / FEED -->
+    <section id="home" class="page">
+      <h2 style="color:var(--gold)">Feed — Cité Miami</h2>
+      <div id="feed" class="feed" aria-live="polite"></div>
     </section>
 
-    <!-- =========================
-         CHANSONS — Recherche + grid
-         ========================= -->
+    <!-- SONGS -->
     <section id="chansons" class="page" style="display:none">
+      <h2 style="color:var(--gold)">Chansons</h2>
       <div class="search-row">
-        <input id="search" placeholder="Rechercher chanson / artiste ..." />
-        <button class="btn-small" id="btn-reset">Reset</button>
+        <input id="searchInput" placeholder="Rechercher chanson / artiste..." aria-label="Recherche"/>
+        <button class="btn-small" id="resetBtn">Reset</button>
       </div>
-      <div id="songsGrid" class="songs-grid"></div>
+      <div id="songsGrid" class="songs-grid" aria-live="polite"></div>
     </section>
 
-    <!-- =========================
-         ARTISTES — liste + profil dynamique
-         ========================= -->
+    <!-- ARTISTS LIST -->
     <section id="artistes" class="page" style="display:none">
-      <h2 style="color:var(--gold);margin-top:0">Artistes</h2>
-      <div id="artistsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
+      <h2 style="color:var(--gold)">Artistes</h2>
+      <div id="artistsList" class="artist-grid"></div>
     </section>
 
-    <!-- Artist profile page (single-page dynamic view) -->
-    <section id="artistProfile" class="artist-page" aria-hidden="true" style="margin-top:10px">
+    <!-- ARTIST PROFILE (dynamique single-page) -->
+    <section id="artistProfile" class="page" style="display:none" aria-hidden="true">
       <button class="btn-small" id="backToArtists" style="margin-bottom:10px">← Retour</button>
       <div class="artist-hero">
-        <img id="artistAvatar" class="artist-avatar" src="" alt="avatar" />
+        <img id="artistAvatar" class="artist-avatar" src="" alt="Avatar artiste"/>
         <div class="artist-bio">
-          <h2 id="artistName" style="margin:0;color:var(--gold)"></h2>
+          <h2 id="artistName" style="color:var(--gold);margin:0"></h2>
           <div id="artistGenre" class="muted" style="margin-top:6px"></div>
-          <p id="artistFullBio" style="margin-top:10px;color:#ddd"></p>
-          <div class="socials" id="artistSocials"></div>
+          <p id="artistFullBio" style="color:#ddd;margin-top:8px"></p>
+          <div id="artistSocials" class="socials"></div>
         </div>
       </div>
-
-      <h3 style="margin-top:14px;color:var(--gold)">Chansons de l'artiste</h3>
+      <h3 style="color:var(--gold)">Chansons</h3>
       <div id="artistSongs" class="songs-grid"></div>
     </section>
 
-    <!-- =========================
-         À PROPOS
-         ========================= -->
-    <section id="apropos" class="page" style="display:none">
-      <h2 style="color:var(--gold)">À propos</h2>
-      <div style="background:var(--panel);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.03)">
-        <p class="muted">Maquette web pour WebViewer — Cité Miami. Conçue par AmaliCorp. Remplace les assets et IDs Google Drive par les tiens (voir commentaires dans le code).</p>
+    <!-- MINI-PLAYER — <= C'EST LE DERNIER CONTENEUR DANS LE FLOW (partie intégrée) -->
+    <div id="miniPlayer" class="mini-player" style="display:none" aria-live="polite">
+      <img id="miniCover" class="mini-cover" src="" alt="Pochette">
+      <div class="mini-info">
+        <div id="miniTitle" class="mini-title">—</div>
+        <div id="miniArtist" class="mini-sub">—</div>
+        <div class="progress-wrap">
+          <input id="miniProgress" type="range" min="0" max="100" value="0" aria-label="Progression"/>
+          <div class="time-row"><span id="timeCur">0:00</span><span id="timeTot">0:00</span></div>
+        </div>
       </div>
-    </section>
+      <div class="mini-controls" role="group" aria-label="Contrôles">
+        <div id="btnPrev" class="round" title="Précédent">⏮</div>
+        <div id="btnPlay" class="round" title="Lecture">▶</div>
+        <div id="btnNext" class="round" title="Suivant">⏭</div>
+      </div>
+    </div>
+
   </main>
 
-  <!-- =========================
-       MINI PLAYER — UI amélioré + tracking
-       ========================= -->
-  <div class="mini-player" id="miniPlayer" style="display:none">
-    <div class="mini-left">
-      <img id="miniCover" class="mini-cover" src="" alt="cover" />
-      <div class="mini-info">
-        <div class="mini-title" id="miniTitle">—</div>
-        <div class="mini-sub" id="miniArtist">—</div>
-      </div>
-
-      <div class="progress-wrap" style="margin-left:12px">
-        <input id="miniProgress" type="range" min="0" max="100" value="0" />
-        <div class="time-row"><span id="timeCurr">0:00</span><span id="timeTotal">0:00</span></div>
-      </div>
-    </div>
-
-    <div class="mini-controls" role="group" aria-label="Transport">
-      <div class="round" id="btnPrev" title="Précédent">⏮</div>
-      <div class="round" id="btnPlay" title="Lecture / Pause">▶</div>
-      <div class="round" id="btnNext" title="Suivant">⏭</div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        <div style="font-size:12px;color:var(--muted)">Volume</div>
-        <input id="miniVol" type="range" min="0" max="1" step="0.01" value="1" style="width:110px" />
-      </div>
-    </div>
-  </div>
+  <footer>© Cité Miami — Firebase + GSAP Edition</footer>
 
   <!-- =========================
-       AUDIO (player engine)
+       AUDIO ENGINE
        ========================= -->
   <audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
 
   <!-- =========================
-       JAVASCRIPT — logique
-       - COMMENT: remplace les IDs Google Drive (ID_GOOGLE_DRIVE_x) par les tiens.
-       - Les images peuvent être stockées dans le repo (recommande: /assets/).
-       - Les "plays" sont suivis en localStorage (démo). Pour backend, envoie POST à ton serveur.
+       SCRIPTS: Firebase compat + GSAP
+       - Remplace firebaseConfig avec tes valeurs
+       - Upload tes mp3 dans Firebase Storage (folder 'songs/' par défaut)
        ========================= -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
   <script>
-  /* ======================================================
-     ================ EDIT HERE (PLAYLIST / ARTISTS) ========
-     ======================================================
-     - Pour les MP3 utilisez des liens direct download :
-       Google Drive format:
-         https://drive.google.com/uc?export=download&id=ID_GOOGLE_DRIVE
-       (comment dans README: uploader et rendre "visible à tous").
-     - Remplace COVER avec le nom de fichier image présent dans le repo.
-     - artistId relie les chansons à la page profil.
-  */
+  /**************************************************************************
+   *  IMPORTANT — EDIT THIS BLOCK
+   *  1) Remplace la firebaseConfig par la tienne (depuis console Firebase)
+   *  2) Upload tes fichiers MP3 dans Firebase Storage (chemin example: "songs/fashi.mp3")
+   *  3) Remplace les noms d'images par ceux présents dans le repo (assets/)
+   *
+   *  NOTES:
+   *  - L'usage de storage.ref(path).getDownloadURL() nécessite que les fichiers
+   *    soient lisibles publiquement (ou que tu gères l'auth). Pour tests,
+   *    configure les règles Storage pour lecture publique pendant dev.
+   **************************************************************************/
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  // initialize
+  firebase.initializeApp(firebaseConfig);
+  const storage = firebase.storage();
+
+  // -------------------------
+  // Data: ARTISTS + PLAYLIST
+  // Modify: cover -> filename present in repo (e.g. assets/czone2.jpg)
+  //         src -> path inside Firebase Storage (e.g. 'songs/fashi.mp3')
+  // -------------------------
   const ARTISTS = [
-    {
-      id: 'nottiff',
-      name: 'Nottiff',
-      avatar: 'czone2.jpeg', // => replace by image file in repo
-      genre: 'Rnb / Trap',
-      bio: `Nottiff — auteur, producteur et performeur. Inspiré par la rue, il transforme la réalité en mélodies. REALITIES (EP) en préparation.`,
-      socials: {
-        tiktok: 'https://tiktok.com/@nottiff',
-        instagram: 'https://instagram.com/nottiff',
-        youtube: 'https://youtube.com/@nottiff'
-      }
-    },
-    {
-      id: 'czone',
-      name: 'CZ One',
-      avatar: 'czone3.jpeg',
-      genre: 'Rap Swahili / Trap',
-      bio: `CZ One, roi de la cité. Flow Swahili puissant, punchlines et énergie.`,
-      socials: { instagram:'#', tiktok:'#', youtube:'#' }
-    },
-    {
-      id: 'dezball',
-      name: 'Dezball',
-      avatar: 'dz.jpeg',
-      genre: 'Afro-urban / Trap',
-      bio: `Dezball mélange afro et trap — vibes pour la route.`,
-      socials: { instagram:'#', tiktok:'#', youtube:'#' }
-    }
+    { id:'nottiff', name:'Nottiff', avatar:'assets/czone2.jpeg', genre:'Rnb / Trap',
+      bio:'Nottiff — auteur, producteur et performeur. REALITIES EP en préparation. Influences RnB, Trap et Afropop.',
+      socials:{ tiktok:'https://tiktok.com/@nottiff', instagram:'https://instagram.com/nottiff' } },
+    { id:'czone', name:'CZ One', avatar:'assets/czone3.jpeg', genre:'Rap Swahili / Trap',
+      bio:'CZ One — flow Swahili, punchlines et énergie. Leader du collectif Cité Miami.',
+      socials:{ instagram:'#', youtube:'#' } },
+    { id:'dezball', name:'Dezball', avatar:'assets/dz.jpeg', genre:'Afro-urban / Trap',
+      bio:'Dezball — vibes afro et rythmes urbains.', socials:{ instagram:'#' } }
   ];
 
-  // PLAYLIST — remplace les ID_GOOGLE_DRIVE_x par les tiens
   const PLAYLIST = [
-    {
-      id: 'track-1',
-      title: 'Fashi Ya Beyi',
-      artist: 'Nottiff',
-      artistId: 'nottiff',
-      cover: 'czone2.jpeg',
-      // =====> EDIT: paste your Google Drive ID (file ID) between quotes below
-      // Example Drive public direct link:
-      // src: "https://drive.google.com/uc?export=download&id=1a2B3cDeFgHiJklMopQ"
-      src: 'https://drive.google.com/uc?export=download&id=ID_GOOGLE_DRIVE_1'
-    },
-    {
-      id: 'track-2',
-      title: 'Winners',
-      artist: 'Cité MIAMI',
-      artistId: 'czone',
-      cover: 'czone3.jpeg',
-      src: 'https://drive.google.com/uc?export=download&id=ID_GOOGLE_DRIVE_2'
-    },
-    {
-      id: 'track-3',
-      title: 'Volonté',
-      artist: 'Cité Miami',
-      artistId: 'dezball',
-      cover: 'czone4.jpeg',
-      src: 'https://drive.google.com/uc?export=download&id=ID_GOOGLE_DRIVE_3'
-    }
+    { id:'t1', title:'Fashi Ya Beyi', artist:'Nottiff', artistId:'nottiff', cover:'assets/czone2.jpeg', src:'songs/fashi.mp3' },
+    { id:'t2', title:'Winners',       artist:'CZ One',  artistId:'czone',   cover:'assets/czone3.jpeg', src:'songs/winners.mp3' },
+    { id:'t3', title:'Volonté',       artist:'Dezball', artistId:'dezball', cover:'assets/czone4.jpeg', src:'songs/volonte.mp3' }
   ];
 
-  /* ======================================================
-     ================ END EDIT AREA =======================
-     ====================================================== */
+  // -------------------------
+  // Helper: cache Firebase download URLs to avoid repeated network calls
+  // -------------------------
+  const firebaseUrlCache = {}; // key: storage path => value: downloadURL
 
-  // ---------------------------
-  // Small utilities
-  // ---------------------------
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const audio = $('#audio');
+  async function getFirebaseUrl(path){
+    if(!path) return null;
+    if(firebaseUrlCache[path]) return firebaseUrlCache[path];
+    try{
+      const ref = storage.ref(path);
+      const url = await ref.getDownloadURL();
+      firebaseUrlCache[path] = url;
+      return url;
+    } catch(err){
+      console.error('Erreur getDownloadURL', path, err);
+      return null;
+    }
+  }
 
-  // Play counts stored in localStorage for demo tracking
-  const STORAGE_KEY = 'cm_play_counts_v1';
+  // -------------------------
+  // Play counts (localStorage) — for "most listened" logic
+  // -------------------------
+  const STORAGE_KEY = 'cm_play_counts_v2';
   function getPlayCounts(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }catch(e){ return {}; } }
   function setPlayCounts(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
 
-  // ---------------------------
-  // NAVIGATION / sections
-  // ---------------------------
-  const navButtons = $$('.nav button');
-  function showSection(name){
-    $$('.page').forEach(p => p.style.display = 'none');
-    navButtons.forEach(b => b.classList.toggle('active', b.dataset.target === name));
-    if(name === 'home') $('#home').style.display = 'block';
-    if(name === 'chansons') $('#chansons').style.display = 'block';
-    if(name === 'artistes') $('#artistes').style.display = 'block';
-    if(name === 'apropos') $('#apropos').style.display = 'block';
-    // hide artist profile if switching
-    $('#artistProfile').style.display = 'none'; $('#artistProfile').setAttribute('aria-hidden','true');
-    // focus search when going to chansons
-    if(name === 'chansons') { setTimeout(()=> $('#search').focus(), 80) }
-  }
-  navButtons.forEach(btn => btn.addEventListener('click', ()=> showSection(btn.dataset.target)));
+  // -------------------------
+  // DOM refs & state
+  // -------------------------
+  const refs = {
+    feed: document.getElementById('feed'),
+    songsGrid: document.getElementById('songsGrid'),
+    artistsList: document.getElementById('artistsList'),
+    artistSongs: document.getElementById('artistSongs'),
+    artistAvatar: document.getElementById('artistAvatar'),
+    artistName: document.getElementById('artistName'),
+    artistGenre: document.getElementById('artistGenre'),
+    artistFullBio: document.getElementById('artistFullBio'),
+    artistSocials: document.getElementById('artistSocials'),
+    miniPlayer: document.getElementById('miniPlayer'),
+    miniCover: document.getElementById('miniCover'),
+    miniTitle: document.getElementById('miniTitle'),
+    miniArtist: document.getElementById('miniArtist'),
+    miniProgress: document.getElementById('miniProgress'),
+    timeCur: document.getElementById('timeCur'),
+    timeTot: document.getElementById('timeTot'),
+    btnPlay: document.getElementById('btnPlay'),
+    btnPrev: document.getElementById('btnPrev'),
+    btnNext: document.getElementById('btnNext'),
+    searchInput: document.getElementById('searchInput'),
+    resetBtn: document.getElementById('resetBtn'),
+    backToArtists: document.getElementById('backToArtists'),
+    audio: document.getElementById('audio'),
+    navButtons: Array.from(document.querySelectorAll('.nav button')),
+    pages: {
+      home: document.getElementById('home'),
+      chansons: document.getElementById('chansons'),
+      artistes: document.getElementById('artistes'),
+      apropos: document.getElementById('apropos'),
+      artistProfile: document.getElementById('artistProfile')
+    }
+  };
 
-  // ---------------------------
-  // RENDER FEED (HOME)
-  // Tiles: New song, Most listened, Discover, Artist news, etc.
-  // ---------------------------
+  let currentTrackIndex = 0;
+  let isPlaying = false;
+
+  // -------------------------
+  // NAVIGATION: show/hide pages (animated with GSAP)
+  // -------------------------
+  function showPage(name){
+    // hide all
+    Object.values(refs.pages).forEach(p => p.style.display = 'none');
+    // show requested
+    if(refs.pages[name]) refs.pages[name].style.display = 'block';
+    // update nav active button
+    refs.navButtons.forEach(b => b.classList.toggle('active', b.dataset.target === name));
+    // GSAP entry animation for visible page
+    gsap.fromTo(refs.pages[name], {opacity:0, y:16}, {opacity:1, y:0, duration:0.45, ease:'power3.out'});
+    // hide artistProfile for non-profile pages
+    if(name !== 'artistProfile'){
+      refs.pages.artistProfile.style.display = 'none';
+      refs.pages.artistProfile.setAttribute('aria-hidden','true');
+    }
+    // focus
+    if(name === 'chansons') setTimeout(()=> refs.searchInput && refs.searchInput.focus(), 80);
+  }
+  // init nav buttons
+  refs.navButtons.forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.target)));
+
+  // -------------------------
+  // RENDER: FEED (tiles 2:1) — includes New track, Most listened, Discover, Artist news
+  // -------------------------
   function mostListenedTrack(){
     const counts = getPlayCounts();
     let best = null; let bestCnt = -1;
     PLAYLIST.forEach(t => { const c = counts[t.id] || 0; if(c > bestCnt){ bestCnt=c; best=t; }});
-    return best;
+    return best || PLAYLIST[0];
+  }
+
+  function makeTile({title, subtitle, img, onClick}){
+    const el = document.createElement('div'); el.className='tile';
+    el.innerHTML = `<img class="thumb" src="${img}" alt="${title}" loading="lazy" />
+      <h4>${title}</h4><p>${subtitle}</p>
+      <div class="meta"><span class="pill">Cité Miami</span><span class="pill">Now</span></div>`;
+    el.addEventListener('click', onClick);
+    // add GSAP hover effect
+    el.addEventListener('mouseenter', ()=> gsap.to(el.querySelector('.thumb'), {scale:1.03, duration:0.35, ease:'power2.out'}));
+    el.addEventListener('mouseleave', ()=> gsap.to(el.querySelector('.thumb'), {scale:1, duration:0.45, ease:'power3.out'}));
+    return el;
   }
 
   function renderFeed(){
-    const feed = $('#feed');
-    feed.innerHTML = '';
-
-    // 1) New song (last in playlist)
+    refs.feed.innerHTML = '';
+    // 1 - New song (last)
     const latest = PLAYLIST[PLAYLIST.length - 1];
-    feed.appendChild(makeTile({
+    refs.feed.appendChild(makeTile({
       title: 'Nouveau — ' + latest.title,
       subtitle: latest.artist,
       img: latest.cover,
-      action: () => loadAndPlayById(latest.id)
+      onClick: () => playById(latest.id)
     }));
 
-    // 2) Most listened
-    const top = mostListenedTrack() || PLAYLIST[0];
-    feed.appendChild(makeTile({
+    // 2 - Most listened
+    const top = mostListenedTrack();
+    refs.feed.appendChild(makeTile({
       title: 'La plus écoutée',
       subtitle: `${top.title} • ${top.artist}`,
       img: top.cover,
-      action: () => loadAndPlayById(top.id)
+      onClick: () => playById(top.id)
     }));
 
-    // 3) Discover Cité MIAMI
-    feed.appendChild(makeTile({
+    // 3 - Discover
+    refs.feed.appendChild(makeTile({
       title: 'Découvrir Cité MIAMI',
-      subtitle: 'Visite rapide — artistes, sons et nouveautés',
+      subtitle: 'Explore artistes & sons',
       img: ARTISTS[0].avatar,
-      action: () => showSection('artistes')
+      onClick: () => showPage('artistes')
     }));
 
-    // 4) Artist News (dummy)
-    feed.appendChild(makeTile({
+    // 4 - Artist News (dummy)
+    refs.feed.appendChild(makeTile({
       title: 'Artist News',
       subtitle: 'Nouvelles sorties & coulisses',
       img: ARTISTS[1].avatar,
-      action: () => showSection('artistes')
+      onClick: () => showPage('artistes')
     }));
 
-    // 5) More tiles: generate a few themed tiles
-    feed.appendChild(makeTile({title:'Top 3 cette semaine', subtitle:'Les morceaux qui chauffent', img:ARTISTS[2].avatar, action:()=>showSection('chansons')}));
-    feed.appendChild(makeTile({title:'Playlist: Mood Route', subtitle:'Conduis avec la ville', img:ARTISTS[0].avatar, action:()=>showSection('chansons')}));
+    // 5 - additional thematic tiles
+    refs.feed.appendChild(makeTile({
+      title: 'Top 3 cette semaine',
+      subtitle: 'Les morceaux qui chauffent',
+      img: ARTISTS[2].avatar,
+      onClick: () => showPage('chansons')
+    }));
+
+    // animate grid children appearance
+    gsap.fromTo(Array.from(refs.feed.children), {opacity:0, y:18}, {opacity:1, y:0, duration:0.6, ease:'power3.out', stagger:0.08});
   }
 
-  function makeTile({title, subtitle, img, action}){
-    const d = document.createElement('div'); d.className='tile';
-    d.innerHTML = `
-      <img class="thumb" src="${img}" alt="${title}" />
-      <h4>${title}</h4>
-      <p>${subtitle}</p>
-      <div class="meta"><span class="pill">Cité Miami</span><span class="pill">Now</span></div>
-    `;
-    d.addEventListener('click', action);
-    return d;
-  }
-
-  // ---------------------------
+  // -------------------------
   // RENDER SONGS GRID
-  // ---------------------------
+  // -------------------------
   function renderSongs(filter = ''){
-    const grid = $('#songsGrid');
-    grid.innerHTML = '';
+    refs.songsGrid.innerHTML = '';
     const q = (filter||'').trim().toLowerCase();
-    PLAYLIST.filter(s => {
+    const list = PLAYLIST.filter(s => {
       if(!q) return true;
       return s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q);
-    }).forEach(song => {
-      const node = document.createElement('div'); node.className='song-tile';
-      node.innerHTML = `
-        <img class="song-cover" src="${song.cover}" alt="${song.title}" />
+    });
+    list.forEach((song, idx) => {
+      const wrapper = document.createElement('div'); wrapper.className='song-tile';
+      wrapper.innerHTML = `
+        <img class="song-cover" src="${song.cover}" alt="${song.title}">
         <div class="song-meta">
           <div class="song-title">${song.title}</div>
           <div class="song-artist">${song.artist}</div>
           <div style="margin-top:8px;color:var(--muted);font-size:13px">
             Écoutes: <strong>${(getPlayCounts()[song.id]||0)}</strong>
-            • <button class="btn-small" data-play="${song.id}">Lire</button>
-            • <button class="btn-small" data-profile="${song.artistId}">Profil</button>
+            &nbsp; • &nbsp;
+            <button class="btn-small" data-play="${song.id}">Lire</button>
+            &nbsp; • &nbsp;
+            <button class="btn-small" data-profile="${song.artistId}">Profil</button>
           </div>
-        </div>
-      `;
-      grid.appendChild(node);
+        </div>`;
+      refs.songsGrid.appendChild(wrapper);
+      // subtle enter animation with GSAP
+      gsap.fromTo(wrapper, {y:8, opacity:0}, {y:0, opacity:1, duration:0.45, ease:'power2.out', delay: idx * 0.04});
     });
   }
 
-  // ---------------------------
+  // -------------------------
   // RENDER ARTISTS LIST
-  // ---------------------------
+  // -------------------------
   function renderArtists(){
-    const wrap = $('#artistsList'); wrap.innerHTML = '';
-    ARTISTS.forEach(a=>{
-      const card = document.createElement('div'); card.className='tile';
-      card.style.padding='12px';
-      card.innerHTML = `
-        <img src="${a.avatar}" class="thumb" alt="${a.name}" />
-        <h4>${a.name}</h4>
-        <p>${a.genre}</p>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn-small" data-open="${a.id}">Voir profil</button>
-          <button class="btn-small" data-playartist="${a.id}">Lire sa chanson</button>
-        </div>
-      `;
-      wrap.appendChild(card);
-    });
-  }
-
-  // ---------------------------
-  // ARTIST PROFILE VIEW
-  // ---------------------------
-  function openArtistProfile(artistId){
-    const artist = ARTISTS.find(a => a.id === artistId);
-    if(!artist) return;
-    $('#artistAvatar').src = artist.avatar;
-    $('#artistName').textContent = artist.name;
-    $('#artistGenre').textContent = artist.genre;
-    $('#artistFullBio').textContent = artist.bio;
-    // socials
-    const socials = $('#artistSocials'); socials.innerHTML = '';
-    Object.entries(artist.socials||{}).forEach(([k,v])=>{
-      const a = document.createElement('a'); a.href=v; a.target='_blank'; a.textContent = k.toUpperCase();
-      socials.appendChild(a);
-    });
-    // songs of the artist
-    const songsWrap = $('#artistSongs'); songsWrap.innerHTML = '';
-    PLAYLIST.filter(t => t.artistId === artistId).forEach(song => {
-      const node = document.createElement('div'); node.className='song-tile';
-      node.innerHTML = `<img class="song-cover" src="${song.cover}" alt="${song.title}" />
-        <div class="song-meta"><div class="song-title">${song.title}</div><div class="song-artist">${song.artist}</div>
-        <div style="margin-top:8px"><button class="btn-small" data-play="${song.id}">Lire</button></div></div>`;
-      songsWrap.appendChild(node);
-    });
-
-    // show artist page
-    $$('.page').forEach(p=>p.style.display='none'); $('#artistProfile').style.display='block'; $('#artistProfile').setAttribute('aria-hidden','false');
-  }
-
-  
+    refs.artistsList.innerHTML = '';
+    ARTISTS.forEach((a, idx) => {
+      const d = document.createElement('div'
