@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CITE MIAMI - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #000000; /* Black */
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      color: #FFD700; /* Gold */
+    }
+
+    h1 {
+      text-align: center;
+      color: #FFD700;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
+      gap: 15px;
+    }
+
+    .tile {
+      background: linear-gradient(145deg, #660000, #990000); /* Ruby red tile */
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .tile:hover {
+      transform: scale(1.05);
+    }
+
+    .tile img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .tile h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+      color: #FFD700;
+    }
+
+    .tile p {
+      margin: 0;
+      font-size: 14px;
+      color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>CITE MIAMI</h1>
+  <div class="grid">
+    <!-- 🔹 Example Tile 1 -->
+    <div class="tile">
+      <img src="https://picsum.photos/300/200?random=1" alt="Music cover">
+      <h3>Trending Song</h3>
+      <p>🔥 Now on Drive</p>
+    </div>
+
+    <!-- 🔹 Example Tile 2 -->
+    <div class="tile">
+      <img src="https://picsum.photos/300/200?random=2" alt="Product">
+      <h3>Cool Product</h3>
+      <p>Only $20</p>
+    </div>
+
+    <!-- 🔹 Example Tile 3 -->
+    <div class="tile">
+      <img src="https://picsum.photos/300/200?random=3" alt="Video">
+      <h3>Hot Video</h3>
+      <p>Watch on YouTube</p>
+    </div>
+  </div>
+</body>
+</html>
