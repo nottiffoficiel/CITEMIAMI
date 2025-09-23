@@ -216,7 +216,8 @@
   const ARTISTS = [
     { id:'nottiff', name:'Nottiff', avatar: GITHUB_ASSETS_BASE + 'ntf1.jpeg', genre:'Rnb / Trap', bio:'Bio Nottiff...' },
     { id:'czone', name:'CZ One', avatar: GITHUB_ASSETS_BASE + 'cz.jpeg', genre:'Rap Swahili / Trap', bio:'Bio CZ One...' },
-    { id:'dezball', name:'Dezball', avatar: GITHUB_ASSETS_BASE + 'dz.jpeg', genre:'Afro-urban', bio:'Bio Dezball...' }
+    { id:'dezball', name:'Dezball', avatar: GITHUB_ASSETS_BASE + 'dz.jpeg', genre:'Afro-urban', bio:'Bio Dezball...' },
+    {id:"wellofgang", name:"Well Of Gang", avatar: GITHUB_ASSETS_BASE + "oublier_cnk_pic.jpg"}
   ];
 
   const ALBUMS = [
@@ -394,7 +395,4 @@
       const pc = playCounts[s.id] || 0;
       const lk = likes[s.id] || 0;
       div.innerHTML = `
-        <img class="song-cover" src="${s.cover}" alt="${s.title}">
-        <div class="song-meta">
-          <div class="song-title">${s.title}</div>
- 
+        <img class="song-cover" src="${s.cover}" alt="$
