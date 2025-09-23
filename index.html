@@ -217,7 +217,7 @@
     { id:'nottiff', name:'Nottiff', avatar: GITHUB_ASSETS_BASE + 'ntf1.jpeg', genre:'Rnb / Trap', bio:'Bio Nottiff...' },
     { id:'czone', name:'CZ One', avatar: GITHUB_ASSETS_BASE + 'cz.jpeg', genre:'Rap Swahili / Trap', bio:'Bio CZ One...' },
     { id:'dezball', name:'Dezball', avatar: GITHUB_ASSETS_BASE + 'dz.jpeg', genre:'Afro-urban', bio:'Bio Dezball...' },
-    {id:"wellofgang", name:"Well Of Gang", avatar: GITHUB_ASSETS_BASE + "oublier_cnk_pic.jpg"}
+    {id:'wellofgang', name:'Well Of Gang', avatar: GITHUB_ASSETS_BASE + 'oublier_cnk_pic.jpg'}
   ];
 
   const ALBUMS = [
@@ -229,8 +229,8 @@
     { id:'s1', title:'Fashi Ya Beyi', artist:'Nottiff', artistId:'nottiff', albumId:'a1', cover: GITHUB_ASSETS_BASE + 'realities_pic.jpeg', src: GITHUB_ASSETS_BASE + 'FASHI Ya BEYI.mp3', youtube: 'https://youtu.be/jkRwSHRuNZM?si=wvwN-yhiknkfxYts' },
     { id:'s2', title:'Winners', artist:'Cité Miami', artistId:'czone', albumId:'a2', cover: GITHUB_ASSETS_BASE + 'winners_pic.jpeg', src: GITHUB_ASSETS_BASE + 'winners.mp3', youtube: 'https://www.youtube.com/watch?v=YOUTUBE_ID_2' },
     { id:'s3', title:'Volonté', artist:'Dezball', artistId:'dezball', albumId:'a2', cover: GITHUB_ASSETS_BASE + 'volonte_pic.jpeg', src: GITHUB_ASSETS_BASE + 'volonté.mp3', youtube: '' },
-    {id:"s4", title:"Maisha Polepole", artist:"JS3", artistId:"js3", albumId:"Single", cover: GITHUB_ASSETS_BASE + "miasha_polepole_pic.jpg", src: GITHUB_ASSETS_BASE + "JS3_Maisha Polepole_Ft_Nottiff.mp3"},
-    {id:"s5", title:"Oublier by CNK, Zdey, GLX", artist:"Well Of Gang", artistId:"wellofgang", albumId:"Single", cover: GITHUB_ASSETS_BASE + "oublier_cnk_pic.jpg", src: GITHUB_ASSETS_BASE + "Oublier_well-off.mp3"}
+    { id:'s4', title:'Maisha Polepole', artist:'JS3', artistId:'js3', albumId:'Single', cover: GITHUB_ASSETS_BASE + 'miasha_polepole_pic.jpg', src: GITHUB_ASSETS_BASE + 'JS3_Maisha Polepole_Ft_Nottiff.mp3'},
+    {id:'s5', title:"Oublier by CNK, Zdey, GLX", artist:'Well Of Gang', artistId:"wellofgang", albumId:'Single', cover: GITHUB_ASSETS_BASE + 'oublier_cnk_pic.jpg', src: GITHUB_ASSETS_BASE + 'Oublier_well-off.mp3'}
   ];
 
   /*************************************************************************
@@ -395,4 +395,4 @@
       const pc = playCounts[s.id] || 0;
       const lk = likes[s.id] || 0;
       div.innerHTML = `
-        <img class="song-cover" src="${s.cover}" alt="$
+        <img class="song-cover" src="${s.cover}" alt="
